@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Camera Firmware Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <img alt="Smart Camera logo" class="w-12 h-12" src="https://placehold.co/48x48" />
+          <h1 class="text-2xl font-semibold text-gray-800">Smart Camera Firmware Scanner</h1>
+        </div>
+        <nav class="hidden md:flex space-x-6 text-gray-600 font-medium">
+          <a class="hover:text-blue-600 transition" href="#">Home</a>
+          <a class="hover:text-blue-600 transition" href="#">Devices</a>
+          <a class="hover:text-blue-600 transition" href="#">Firmware</a>
+          <a class="hover:text-blue-600 transition" href="#">Support</a>
+        </nav>
+        <button aria-label="Open menu" class="md:hidden text-gray-600 hover:text-blue-600" id="mobile-menu-button">
+          <i class="fas fa-bars fa-lg"></i>
+        </button>
+      </div>
+      <nav aria-label="Mobile menu" class="md:hidden bg-white border-t border-gray-200 hidden" id="mobile-menu">
+        <a class="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600" href="#">Home</a>
+        <a class="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600" href="#">Devices</a>
+        <a class="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600" href="#">Firmware</a>
+        <a class="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600" href="#">Support</a>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <section class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-3xl font-semibold text-gray-800 mb-6 flex items-center">
+          <i class="fas fa-microchip text-blue-600 mr-3"></i> Scan for Outdated Firmware
+        </h2>
+        <form class="space-y-6" id="scan-form">
+          <div>
+            <label class="block text-gray-700 font-medium mb-2" for="device-ip">Smart Camera IP Address</label>
+            <input
+              class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              id="device-ip"
+              name="device_ip"
+              placeholder="e.g. 192.168.1.100"
+              required
+              type="text"
+            />
+            <p class="mt-1 text-sm text-gray-500">Enter the IP address of your smart camera.</p>
+          </div>
+          <div>
+            <button
+              class="inline-flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              type="submit"
+            >
+              <i class="fas fa-search"></i>
+              <span>Start Scan</span>
+            </button>
+          </div>
+        </form>
+        <section class="mt-10 hidden" id="scan-result">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-info-circle text-blue-600 mr-2"></i> Scan Results
+          </h3>
+          <div class="bg-gray-50 border border-gray-200 rounded-md p-6" id="result-content">
+            <!-- Results go here -->
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+        © 2024 Smart Camera Inc. All rights reserved.
+      </div>
+    </footer>
+
+    <script>
+      // Mobile menu toggle
+      const mobileMenuButton = document.getElementById("mobile-menu-button");
+      const mobileMenu = document.getElementById("mobile-menu");
+      mobileMenuButton.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
+
+      // Scan form
+      const scanForm = document.getElementById("scan-form");
+      const scanResultSection = document.getElementById("scan-result");
+      const resultContent = document.getElementById("result-content");
+
+      scanForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const ipInput = document.getElementById("device-ip").value.trim();
+
+        resultContent.innerHTML = "<p class='text-gray-600 italic'>Scanning device firmware, please wait...</p>";
+        scanResultSection.classList.remove("hidden");
+
+        fetch("/scan", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `device_ip=${encodeURIComponent(ipInput)}`
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            resultContent.innerHTML = `
+              <div class="text-center text-green-600 font-semibold">
+                ${data.message}
+              </div>`;
+          })
+          .catch((err) => {
+            resultContent.innerHTML = `
+              <div class="text-center text-red-600 font-semibold">
+                Error scanning device: ${err.message}
+              </div>`;
+          });
+      });
+    </script>
+  </body>
+</html>
